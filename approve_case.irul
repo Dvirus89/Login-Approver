@@ -1,0 +1,88 @@
+#approve access irule
+
+when RULE_INIT {
+    array set ::active_aprovals { }
+    set static::debug 0
+}
+
+when HTTP_REQUEST {
+    set user [URI::query [HTTP::uri] user]
+    set otp [URI::query [HTTP::uri] otp]
+    set error_msg 0
+    if {$static::debug == 1 } { log local0. "user: #$user#   otp: #$otp#" }
+    #logic here
+    if {$user != "" && $otp != ""} {
+    if {$static::debug == 1 } { log local0. "user and otp paramerters exists, global approval variable for the user" }
+    if { ![catch {
+        if { $::active_aprovals($user) == $otp } {
+            set ::active_aprovals($user) "approved"
+            HTTP::respond 200 content "
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta name='viewport' content='width=device-width, initial-scale=1'>
+            <style>
+            body {
+                background: #555;
+            }
+
+            .content {
+                max-width: 500px;
+                margin: auto;
+                background: #18c16b;
+                padding: 100px;
+                text-align: center;
+
+            }
+            </style>
+            </head>
+            <body>
+
+            <div class='content'>
+            <h1>
+            Access approved for user: $user
+            </h1>
+            </div>
+            </body>
+            </html>
+            "
+            } else { 
+                set error_msg 1
+            }
+            
+             }]} { } else { set error_msg 1 }
+        }
+        
+        if {$error_msg == 1} {
+                    HTTP::respond 200 content "
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta name='viewport' content='width=device-width, initial-scale=1'>
+            <style>
+            body {
+                background: #555;
+            }
+
+            .content {
+                max-width: 500px;
+                margin: auto;
+                background: #18c16b;
+                padding: 100px;
+                text-align: center;
+
+            }
+            </style>
+            </head>
+            <body>
+
+            <div class='content'>
+            <h1>
+            Thank you!
+            </h1>
+            </div>
+            </body>
+            </html>
+            "
+        }
+}

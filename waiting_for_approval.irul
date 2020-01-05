@@ -1,0 +1,41 @@
+#Waiting for approval irule
+when RULE_INIT {
+    set static::debug 0
+}
+
+when ACCESS_POLICY_AGENT_EVENT {
+    set otp [ACCESS::session data get "session.otp.assigned.val"]
+    set user [ACCESS::session data get "session.logon.last.username"]
+    set break 0
+    set timeout_otp 120
+    for {set i 0} { $i < $timeout_otp } {incr i 10} {
+        if {$static::debug == 1 } { log local0. "#####wait_for_approval##### in loop, iteration $i" }
+        if { ![catch {
+            if {$static::debug == 1 } { log local0. "#####wait_for_approval##### test if ther is value for otp:  $::active_aprovals($user)" }
+            if { $::active_aprovals($user) == $otp } {
+                if {$static::debug == 1 } { log local0. "#####wait_for_approval##### active_aprovals exist, allowing apm by setting access session var approved_login to true" }
+                ACCESS::session data set session.custom.approved_login "true"
+                unset ::active_aprovals($user)
+                set break 1
+            } else {
+                #block bad attempt here
+                if {$static::debug == 1 } { log local0. "#####wait_for_approval##### invalid OTP" }
+            }
+        } ] } {
+        } else {
+            if {$static::debug == 1 } { log local0. "#####wait_for_approval##### active_aprovals NOT exist" }
+        }
+        if {$static::debug == 1 } { log local0. "#####wait_for_approval##### sleep..." }
+        if {$break == 1 } { 
+            if {$static::debug == 1 } { log local0. "#####wait_for_approval##### break!..." }
+            break; 
+            }
+        after {1000}
+    }
+
+}
+
+
+when ACCESS_SESSION_CLOSED {
+    unset ::active_aprovals($user)
+}
