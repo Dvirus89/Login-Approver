@@ -6,15 +6,12 @@ when RULE_INIT {
 
 proc CreateGUID {
     append s [clock seconds] [IP::local_addr] [IP::client_addr] [expr { int(100000000 * rand()) }] [clock clicks]
-
     set s [md5 $s]
-
     binary scan $s c* s
     lset s 8 [expr {([lindex $s 8] & 0x7F) | 0x40}]
     lset s 6 [expr {([lindex $s 6] & 0x0F) | 0x40}]
     set s [binary format c* $s]
     binary scan $s H* s
-
     append u [substr $s 0 8] "-" [substr $s 8 4] "-" [substr $s 12 4] "-" [substr $s 16 4] "-" [substr $s 20 12]
     unset s
     return $u
@@ -25,7 +22,6 @@ when ACCESS_POLICY_AGENT_EVENT {
         "wait_for_approval" {
             set guid [ACCESS::session data get "session.custom.user_guid"]
             if {$static::debug == 1 } { log local0. "#####wait_for_approval##### guid https://63433a2d-d1c1-489b-aee5-ff8e3ccdd55d.access.udf.f5.com/$guid" }
-            set otp [ACCESS::session data get "session.otp.assigned.val"]
             set user [ACCESS::session data get "session.logon.last.username"]
             set ::active_aprovals($guid) $user
             set break 0
