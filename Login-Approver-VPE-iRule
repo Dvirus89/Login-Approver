@@ -1,0 +1,71 @@
+#Waiting for approval irule
+when RULE_INIT {
+    set static::debug 1
+}
+
+
+proc CreateGUID {
+    append s [clock seconds] [IP::local_addr] [IP::client_addr] [expr { int(100000000 * rand()) }] [clock clicks]
+
+    set s [md5 $s]
+
+    binary scan $s c* s
+    lset s 8 [expr {([lindex $s 8] & 0x7F) | 0x40}]
+    lset s 6 [expr {([lindex $s 6] & 0x0F) | 0x40}]
+    set s [binary format c* $s]
+    binary scan $s H* s
+
+    append u [substr $s 0 8] "-" [substr $s 8 4] "-" [substr $s 12 4] "-" [substr $s 16 4] "-" [substr $s 20 12]
+    unset s
+    return $u
+}
+
+when ACCESS_POLICY_AGENT_EVENT {
+    switch [ACCESS::policy agent_id] {
+        "wait_for_approval" {
+            set guid [ACCESS::session data get "session.custom.user_guid"]
+            if {$static::debug == 1 } { log local0. "#####wait_for_approval##### guid https://63433a2d-d1c1-489b-aee5-ff8e3ccdd55d.access.udf.f5.com/$guid" }
+            set otp [ACCESS::session data get "session.otp.assigned.val"]
+            set user [ACCESS::session data get "session.logon.last.username"]
+            set ::active_aprovals($guid) $user
+            set break 0
+            set timeout_otp 300
+            for {set i 0} { $i < $timeout_otp } {incr i 10} {
+                if {$static::debug == 1 } { log local0. "#####wait_for_approval##### in loop, iteration $i" }
+                if { ![catch {
+                    if {$static::debug == 1 } { log local0. "#####wait_for_approval##### test if ther is value for otp:  $::active_aprovals($guid)" }
+                    if { $::active_aprovals($guid) == "approved" } {
+                        if {$static::debug == 1 } { log local0. "#####wait_for_approval##### active_aprovals exist, allowing apm by setting access session var approved_login to true" }
+                        ACCESS::session data set session.custom.approved_login "true"
+                        unset ::active_aprovals($guid)
+                        set break 1
+                    } else {
+                        #block bad attempt here
+                        if {$static::debug == 1 } { log local0. "#####wait_for_approval##### invalid OTP" }
+                    }
+                } ] } {
+                } else {
+                    if {$static::debug == 1 } { log local0. "#####wait_for_approval##### active_aprovals NOT exist" }
+                }
+                if {$static::debug == 1 } { log local0. "#####wait_for_approval##### sleep..." }
+                if {$break == 1 } {
+                    if {$static::debug == 1 } { log local0. "#####wait_for_approval##### break!..." }
+                    break;
+                }
+                after {1000}
+            }
+        }
+        "generate_guid" {
+            if {$static::debug == 1 } { log local0. "#####generate_guid##### creating guid" }
+            set guid [call CreateGUID]
+            ACCESS::session data set session.custom.user_guid $guid
+            if {$static::debug == 1 } { log local0. "#####generate_guid##### guid https://63433a2d-d1c1-489b-aee5-ff8e3ccdd55d.access.udf.f5.com/$guid" }
+        }
+    }
+
+}
+
+
+when ACCESS_SESSION_CLOSED {
+    unset ::active_aprovals($guid)
+}
