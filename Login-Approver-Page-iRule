@@ -52,7 +52,7 @@ when HTTP_REQUEST {
             }
 
             }]} { } else { set error_msg 1 }
-        }
+        } else { set error_msg 1 }
 
         if {$error_msg == 1} {
             HTTP::respond 200 content "
