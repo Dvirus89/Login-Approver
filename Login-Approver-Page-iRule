@@ -1,4 +1,4 @@
-#approve access irule
+#Login-Approver-Page-iRule
 
 when RULE_INIT {
     array set ::active_aprovals { }
