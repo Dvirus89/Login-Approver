@@ -1,4 +1,4 @@
-#Waiting for approval irule
+#Login-Approver-VPE-iRule
 when RULE_INIT {
     set static::debug 1
 }
