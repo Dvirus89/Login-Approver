@@ -14,6 +14,7 @@ The issue / challange with this approach is that you assure if the external logi
 ## The Solution
 Add another step into the authentication process, in this step someone from the organization can approve in realtime the specific login for the contractors / external users.
 ![Alt text](Login_Approver_Flow.png?raw=true "Solution Diagram")
+
 for every authenticaion, a dedicated GUID (OTP) will be generated and sent as a clickable link to the "approver".
 
 ## How to use it?
