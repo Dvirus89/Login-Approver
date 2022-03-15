@@ -27,3 +27,6 @@ As a begining we will need two VS, the 1st is for the real service (the one that
 for the last "approved" branch, add this [expression](approval_expression)
 4. select your prefered method to send the approval message to the "approver", SMS/Email/Whatsapp/Teams/Slack/etc., and send a message that contains the link for the "2nd" VS - approval page with generated GUID (OTP), the link should be something like this: https://approvalpage.com/%{session.custom.user_guid}
 5. TEST :)
+
+## Other optional use case
+"Push Authentication" - Self approval instead of inserting OTP manually
