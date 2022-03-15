@@ -8,7 +8,7 @@ This document provides a high level overview of the solution
 ## The Issue
 Today it's very popular in many organizations to allow contractors / external users to have remote access to some of the organization internal services.
 (with SSLVPN, Portals, etc.)
-The issue / challange with this approach is that you assure if the external login is justified or pre-approved.
+The issue / challange with this approach is that you can't assure if the external login is justified or pre-approved.
 
 
 ## The Solution
